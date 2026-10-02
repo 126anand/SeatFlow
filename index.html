@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SeatFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eef5;--card:#fff;--ink:#0e1a2b;--mut:#66758b;--line:#e1e7f0;--navy:#0e1a2b;--sel:#ffb020;--selink:#3a2600;--free:#e6f6f1;--freeb:#2fb590;--booked:#e8ebf1;--soon:#fff4dc;--soonb:#e09a14;--ok:#1f9d6e;--bad:#d8434a;--map:#eef2f7;--blk:#e3e9f1;--road:#fff;--water:#cfe3f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#060b14;--card:#121c2e;--ink:#eef3fa;--mut:#8b9ab0;--line:#22304a;--navy:#0a1424;--free:#12332d;--booked:#1b2638;--soon:#3a2e12;--map:#0f1a2b;--blk:#16233a;--road:#27374f;--water:#13304d}}
+:root[data-theme="dark"]{--bg:#060b14;--card:#121c2e;--ink:#eef3fa;--mut:#8b9ab0;--line:#22304a;--navy:#0a1424;--free:#12332d;--booked:#1b2638;--soon:#3a2e12;--map:#0f1a2b;--blk:#16233a;--road:#27374f;--water:#13304d}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:center}
+button,select{font-family:inherit;color:inherit}
+.app{width:100%;max-width:420px;height:100%;max-height:880px;background:var(--card);overflow:hidden;position:relative}
+@media(min-width:520px){.app{height:min(880px,96%);border-radius:32px;box-shadow:0 30px 80px rgba(8,20,40,.28)}}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card);transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .4s}
+.screen.off{transform:translateX(100%);opacity:0;pointer-events:none}.screen.away{transform:translateX(-28%);opacity:0;pointer-events:none}
+.logo{font-weight:700;font-size:16px;display:flex;gap:8px;align-items:center}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--sel);display:grid;place-items:center;font-style:normal;font-size:14px}
+.role{display:flex;position:relative;background:rgba(14,26,43,.78);border-radius:12px;padding:3px;backdrop-filter:blur(6px)}
+.role button{border:0;background:none;color:#cbd6e6;font-weight:600;font-size:12px;padding:7px 12px;z-index:1;cursor:pointer;transition:color .3s}
+.role button.on{color:#3a2600}.role .pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);background:var(--sel);border-radius:9px;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.map{position:absolute;left:0;right:0;top:0;height:58%;background:var(--map)}.map svg{width:100%;height:100%;display:block}#home{background:var(--map)}
+.mtop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:14px;right:14px;display:flex;justify-content:space-between;align-items:center}
+.mtop .logo{background:var(--card);padding:6px 12px 6px 7px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.15);color:var(--ink)}
+.mlive{background:var(--card);border-radius:20px;padding:8px 13px;font-size:12px;display:flex;gap:7px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.mlive b{width:8px;height:8px;border-radius:50%;background:#3ddc97;animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.7)}100%{box-shadow:0 0 0 9px rgba(61,220,151,0)}}
+.bk{fill:var(--blk)}.rd{stroke:var(--road);stroke-width:7;stroke-linecap:round;fill:none}.rv{stroke:var(--water);stroke-width:16;fill:none;stroke-linecap:round}
+.sn{font-size:8.5px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--map);stroke-width:3px;text-anchor:middle}
+.veh{transition:opacity .45s;cursor:pointer}.veh .ring{fill:none;stroke:var(--sel);stroke-width:3;opacity:0;transform-box:fill-box;transform-origin:center}
+.veh.sel .ring{opacity:1;animation:rp 1.4s infinite}@keyframes rp{0%{transform:scale(.9);opacity:.9}100%{transform:scale(2);opacity:0}}
+.veh .lbl{font-size:9px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3.5px;text-anchor:middle}
+.sheet{position:absolute;left:0;right:0;top:72px;height:calc(100% - 72px);background:var(--card);border-radius:26px 26px 0 0;z-index:2;box-shadow:0 -10px 30px rgba(0,0,0,.14);display:flex;flex-direction:column;transition:transform .45s cubic-bezier(.22,1,.36,1)}.sheet.drag{transition:none}
+.dz{padding:12px 0 10px;touch-action:none;cursor:grab}.grab{width:42px;height:5px;border-radius:5px;background:var(--line);margin:0 auto}.sbody{flex:1;overflow-y:auto;padding:2px 16px calc(var(--off,0px) + 24px)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:none;border-radius:14px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;display:flex;gap:7px;align-items:center;transition:.3s}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff;transform:translateY(-1px)}
+.pick{display:grid;grid-template-columns:18px 1fr 40px;gap:0 10px;align-items:center;border:1.5px solid var(--line);border-radius:16px;padding:8px 10px;margin-bottom:14px}
+.pick .tr{grid-row:1/3;display:flex;flex-direction:column;align-items:center;gap:3px}.tr i{width:10px;height:10px;border-radius:50%;background:var(--freeb)}.tr u{width:2px;height:20px;background:var(--line)}.tr s{width:10px;height:10px;border-radius:2px;background:var(--navy)}
+.pick select{border:0;background:none;font-size:14px;font-weight:600;padding:8px 0;width:100%;outline:none;cursor:pointer}.pick select:first-of-type{border-bottom:1px solid var(--line)}
+.swap{grid-row:1/3;grid-column:3;border:1.5px solid var(--line);background:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;transition:transform .4s}
+.lh{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--mut);margin-bottom:10px}.lh b{color:var(--ink);font-size:15px}
+.vc{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;padding:12px;border:1.5px solid var(--line);border-radius:16px;margin-bottom:10px;cursor:pointer;transition:border-color .3s,background .3s,transform .3s;animation:in .5s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i)*60ms)}
+.vc.on{border-color:var(--sel);background:var(--soon);transform:scale(1.015)}
+.vc .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px}
+.vc b{font-size:14px;display:block}.vc small{color:var(--mut);font-size:12px}.vc .rt{text-align:right;font-weight:700;font-size:14px}.vc .rt small{display:block;font-weight:400}
+.go{grid-column:1/4;border:0;background:var(--navy);color:#fff;font-weight:700;font-size:14px;padding:13px;border-radius:12px;cursor:pointer;display:none}.vc.on .go{display:block;animation:in .35s both}
+.empty{text-align:center;color:var(--mut);font-size:13px;padding:24px 10px}.empty b{display:block;font-size:30px;margin-bottom:6px}
+@keyframes in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.fh{background:var(--navy);color:#fff;padding:14px 20px 20px;border-radius:0 0 26px 26px;z-index:3}
+.fh .r{display:flex;align-items:center;gap:12px}.back{width:36px;height:36px;border-radius:12px;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:18px;cursor:pointer}
+.fh h1{font-size:19px;margin:0;font-weight:700}.sub{font-size:12px;color:#b8c6dc;margin:2px 0 0}
+.steps{display:flex;gap:6px;margin-top:14px}.steps span{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.18);position:relative;overflow:hidden}
+.steps span::after{content:"";position:absolute;inset:0;background:var(--sel);transform:scaleX(0);transform-origin:left;transition:transform .5s}.steps span.on::after{transform:scaleX(1)}
+.stage{position:relative;flex:1;overflow:hidden}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:18px 20px;transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .4s;opacity:0;pointer-events:none;transform:translateX(60px)}
+.panel.active{opacity:1;pointer-events:auto;transform:none}.panel.left{transform:translateX(-60px)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-bottom:12px}.legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+.deck{background:var(--booked);border-radius:30px 30px 18px 18px;padding:14px 16px 12px}
+.drv{display:flex;justify-content:space-between;padding:4px 8px 12px;color:var(--mut);font-size:12px;border-bottom:2px dashed var(--line);margin-bottom:12px}
+.row{display:grid;gap:8px;margin:0 auto 8px;align-items:center}.rl{font-size:11px;color:var(--mut);text-align:center}
+.seat{aspect-ratio:1;border-radius:11px 11px 7px 7px;border:2px solid var(--freeb);background:var(--free);font-weight:600;font-size:12px;cursor:pointer;position:relative;display:grid;place-items:center;opacity:0;transform:translateY(10px) scale(.85);animation:in2 .45s cubic-bezier(.22,1,.36,1) forwards;animation-delay:calc(var(--i)*22ms);transition:background .25s,border-color .25s,transform .25s}
+.na .seat{animation:none;opacity:1;transform:none;cursor:default}
+@keyframes in2{to{opacity:1;transform:none}}
+.seat:active{transform:scale(.92)}
+.seat.booked{background:var(--booked) repeating-linear-gradient(135deg,transparent 0 5px,rgba(120,135,160,.25) 5px 7px);border-color:transparent;color:var(--mut);cursor:not-allowed}
+.seat.x{border-color:transparent;background:var(--line);cursor:not-allowed}.seat.soon{background:var(--soon);border:2px dashed var(--soonb)}
+.seat.sel{background:var(--sel);border-color:var(--sel);color:var(--selink);transform:translateY(-3px) scale(1.06);box-shadow:0 8px 16px rgba(255,176,32,.45)}
+.seat.ld::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#e8559d;border:2px solid var(--card)}
+.card{border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.line{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;color:var(--mut)}.line b{color:var(--ink);text-align:right}.total{border-top:1px dashed var(--line);margin-top:6px;padding-top:12px;font-size:16px}
+.timer{display:flex;align-items:center;gap:14px;background:var(--soon);border-radius:18px;padding:14px;margin-bottom:14px}.timer small{color:var(--mut);display:block;font-size:12px}
+.ring2{width:54px;height:54px;position:relative;flex:none}.ring2 svg{transform:rotate(-90deg)}.ring2 b{position:absolute;inset:0;display:grid;place-items:center;font-size:12px}
+.pay{display:flex;gap:10px}.pay button{flex:1;border:2px solid var(--line);background:none;border-radius:14px;padding:12px 4px;font-weight:600;font-size:13px;cursor:pointer;transition:.25s}.pay button.on{border-color:var(--freeb);background:var(--free)}
+.bar{padding:14px 20px 18px;border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;background:var(--card);z-index:2}
+.sum{flex:1;min-width:0}.sum b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sum small{color:var(--mut);font-size:12px}
+.cta{border:0;background:var(--navy);color:#fff;font-weight:700;font-size:14px;padding:15px 24px;border-radius:16px;cursor:pointer;transition:transform .2s,opacity .3s;display:flex;gap:8px;align-items:center;min-width:140px;justify-content:center}.cta:active{transform:scale(.96)}.cta:disabled{opacity:.35;cursor:not-allowed}
+.spin{width:16px;height:16px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.tick{width:72px;height:72px;margin:0 auto 12px;display:block}.tick circle{stroke:var(--ok);stroke-width:4;fill:none;stroke-dasharray:190;stroke-dashoffset:190}.tick path{stroke:var(--ok);stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50}
+.panel.active .tick circle{animation:draw .7s .25s ease forwards}.panel.active .tick path{animation:draw .45s .85s ease forwards}@keyframes draw{to{stroke-dashoffset:0}}
+.center{text-align:center}.center h2{margin:0 0 4px;font-size:20px}.center p{margin:0 0 16px;color:var(--mut);font-size:13px}
+.ticket{border:1px solid var(--line);border-radius:22px;overflow:hidden;transform:translateY(30px) rotate(-1deg);opacity:0;transition:.7s 1.1s cubic-bezier(.22,1,.36,1)}.panel.active .ticket{transform:none;opacity:1}
+.tk-top{background:var(--navy);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}.tk-top small{color:#b8c6dc;font-size:12px;display:block}
+.tk-body{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.tk-body small{color:var(--mut);font-size:11px;display:block}.tk-body b{font-size:14px}
+.tk-cut{border-top:2px dashed var(--line);margin:0 18px}.qr{padding:16px;display:grid;place-items:center}.qr svg{width:150px;height:150px;border-radius:10px;background:#fff;padding:8px}
+.dh{background:var(--navy);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 20px 22px;border-radius:0 0 26px 26px}.dh .t{display:flex;justify-content:space-between;align-items:center}.dh .role{background:rgba(255,255,255,.1)}
+.dh h1{font-size:21px;margin:16px 0 2px}
+#dbody{flex:1;overflow-y:auto;padding:16px 20px 24px}
+.pillst{display:inline-flex;gap:7px;align-items:center;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;background:var(--booked);color:var(--mut)}.pillst.live{background:var(--free);color:var(--ok)}.pillst b{width:8px;height:8px;border-radius:50%;background:currentColor}.pillst.live b{animation:pulse 1.6s infinite}
+.chk{list-style:none;margin:12px 0 0;padding:0}.chk li{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:14px;color:var(--mut);transition:color .3s}.chk li i{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;color:transparent;transition:.3s}.chk li.ok{color:var(--ink)}.chk li.ok i{background:var(--ok);border-color:var(--ok);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.stats div{border:1px solid var(--line);border-radius:14px;padding:12px}.stats b{display:block;font-size:20px}.stats small{color:var(--mut);font-size:11px}
+.rt2{display:flex;margin:6px 0 16px}.rt2 span{flex:1;text-align:center;font-size:10px;color:var(--mut);position:relative;padding-top:18px}.rt2 span::before{content:"";position:absolute;top:4px;left:0;right:0;height:3px;background:var(--line)}.rt2 span::after{content:"";position:absolute;top:0;left:50%;margin-left:-5px;width:11px;height:11px;border-radius:50%;background:var(--card);border:3px solid var(--line);transition:.4s}
+.rt2 span.p::before{background:var(--freeb)}.rt2 span.p::after{border-color:var(--freeb)}.rt2 span.c{color:var(--ink);font-weight:700}.rt2 span.c::after{background:var(--sel);border-color:var(--sel);transform:scale(1.4)}
+.btns{display:flex;gap:10px;margin-top:16px}.btns button{flex:1;border:0;border-radius:14px;padding:14px 6px;font-weight:700;font-size:13px;cursor:pointer;background:var(--booked);transition:transform .2s}.btns button:active{transform:scale(.96)}.btns .em{background:var(--bad);color:#fff}.btns .pr{background:var(--navy);color:#fff}
+.toast{position:absolute;left:20px;right:20px;top:90px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:14px;font-size:13px;z-index:9;transform:translateY(-20px);opacity:0;transition:.4s;pointer-events:none}.toast.show{transform:none;opacity:1}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.mtop{z-index:3;pointer-events:none}.mtop>*{pointer-events:auto}
+.hb{width:42px;height:42px;border-radius:14px;border:0;background:var(--card);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.18);display:grid;place-items:center;cursor:pointer;transition:transform .2s}.hb:active{transform:scale(.92)}
+.sbtn{width:100%;border:0;background:var(--sel);color:var(--selink);font-weight:700;font-size:15px;padding:15px;border-radius:16px;cursor:pointer;margin-bottom:16px;transition:opacity .3s,transform .2s}.sbtn:disabled{opacity:.4;cursor:not-allowed}.sbtn:active{transform:scale(.98)}
+.hint{text-align:center;color:var(--mut);font-size:13px;padding:22px 14px;border:1.5px dashed var(--line);border-radius:16px}.hint b{display:block;font-size:28px;margin-bottom:6px}
+.scrim{position:absolute;inset:0;background:rgba(6,11,20,.55);opacity:0;pointer-events:none;transition:opacity .4s;z-index:20}.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:82%;max-width:330px;background:var(--card);z-index:21;transform:translateX(-102%);transition:transform .5s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column;border-radius:0 26px 26px 0;box-shadow:12px 0 40px rgba(0,0,0,.25)}.drawer.open{transform:none}
+.dp{background:var(--navy);color:#fff;padding:calc(28px + env(safe-area-inset-top,0px)) 20px 22px;border-radius:0 26px 0 0;display:flex;gap:14px;align-items:center}.dp b{display:block;font-size:16px}.dp small{color:#b8c6dc;font-size:12px}
+.av{width:56px;height:56px;border-radius:50%;background:var(--sel);color:var(--selink);display:grid;place-items:center;font-weight:700;font-size:22px;overflow:hidden;flex:none;cursor:pointer}.av img{width:100%;height:100%;object-fit:cover}.av.big{width:96px;height:96px;font-size:36px}
+.ed{margin-left:auto;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer}
+#dnav{padding:10px 0;flex:1;overflow-y:auto}.mi{display:flex;gap:14px;align-items:center;width:100%;border:0;background:none;padding:15px 22px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;transition:background .2s}.mi:active{background:var(--booked)}
+.mi.drvb{margin:14px 16px 0;width:calc(100% - 32px);background:var(--navy);color:#fff;border-radius:16px;padding:15px 16px;justify-content:center}
+#subbody{flex:1;overflow-y:auto;padding:18px 20px 28px}
+.fl{display:block;font-size:12px;color:var(--mut);margin-bottom:14px}.fl input{display:block;width:100%;margin-top:6px;border:1.5px solid var(--line);background:none;border-radius:14px;padding:13px 14px;font:600 15px inherit;font-family:inherit;color:var(--ink);outline:none}.fl input:focus{border-color:var(--freeb)}
+.avw{position:relative;width:96px;margin:6px auto 22px}.cam{position:absolute;right:-6px;bottom:-4px;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;cursor:pointer;border:3px solid var(--card)}
+.cta.full{width:100%}
+.hi{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;animation:in .45s both}.hi div{display:flex;justify-content:space-between;align-items:center;gap:8px}.hi div+div{margin-top:6px}.hi small{color:var(--mut);font-size:12px}.hi b{font-size:14px}.tg{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;background:var(--booked);color:var(--mut)}.tg.up{background:var(--soon);color:var(--soonb)}.tg.ok{background:var(--free);color:var(--ok)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px}.sw small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.tgl{width:46px;height:28px;border-radius:16px;background:var(--line);border:0;position:relative;cursor:pointer;transition:background .3s;flex:none}.tgl::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}.tgl.on{background:var(--freeb)}.tgl.on::after{transform:translateX(18px)}
+.sg{margin:6px 0 22px}.sg h4{margin:0 0 10px;font-size:13px;color:var(--mut);font-weight:600}.seg2{display:flex;background:var(--booked);border-radius:14px;padding:4px;gap:4px}.seg2 button{flex:1;border:0;background:none;padding:11px 6px;border-radius:11px;font-weight:600;font-size:13px;cursor:pointer;transition:.3s}.seg2 button.on{background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.dgr{width:100%;border:1.5px solid var(--bad);background:none;color:var(--bad);font-weight:700;font-size:14px;padding:14px;border-radius:14px;cursor:pointer;margin-top:22px}
+.cf{background:var(--soon);border-radius:16px;padding:16px;margin-top:14px;animation:in .4s both}.cf p{margin:0 0 12px;font-size:13px}.cf div{display:flex;gap:10px}.cf button{flex:1;border:0;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+details{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;font-size:14px}summary{font-weight:600;cursor:pointer}details p{color:var(--mut);font-size:13px;margin:10px 0 0}
+a.cta{text-decoration:none}
+button:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="screen" id="home">
+  <div class="map"><svg id="map" viewBox="0 0 300 340" preserveAspectRatio="xMidYMid slice"></svg></div>
+  <div class="mtop"><button class="hb" id="hb" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><div class="mlive"><b></b><span id="mc"></span></div></div>
+  <div class="sheet" id="sheet">
+    <div class="dz" id="dz"><div class="grab"></div></div>
+    <div class="sbody">
+      <div class="chips" id="chips"></div>
+      <div class="pick"><div class="tr"><i></i><u></u><s></s></div><select id="pu" aria-label="Pickup stop"></select><select id="de" aria-label="Destination stop"></select><button class="swap" id="swap" aria-label="Swap">⇅</button></div>
+      <button class="sbtn" id="sbtn" data-i="Search buses" disabled>Search buses</button>
+      <div class="lh" id="lh" hidden><b id="lt"></b><span id="ls"></span></div><div id="list"></div>
+    </div>
+  </div>
+</section>
+<section class="screen off" id="drv">
+  <div class="dh"><div class="t" style="justify-content:flex-start;gap:12px"><button class="back" id="dback" aria-label="Back to passenger mode">←</button><span class="sub" style="margin:0">Driver mode</span></div><h1>Good morning, driver</h1><p class="sub" style="margin:0">Sajha Express · Ba 1 Kha 1234 · Kalanki to Chabahil</p></div>
+  <div id="dbody"></div>
+</section>
+<section class="screen off" id="flow">
+  <div class="fh"><div class="r"><button class="back" id="back" aria-label="Back">←</button><div><h1 id="ft"></h1><p class="sub" id="fs"></p></div></div><div class="steps" id="steps"><span></span><span></span><span></span></div></div>
+  <main class="stage">
+    <section class="panel" id="p0"><div class="legend"><span><i style="background:var(--free);border:2px solid var(--freeb)"></i>Free</span><span><i style="background:var(--soon);border:2px dashed var(--soonb)"></i>Frees at pickup</span><span><i style="background:var(--sel)"></i>Yours</span><span><i style="background:var(--booked)"></i>Taken</span></div><div class="deck"><div class="drv"><span>Front</span><span>🧑‍✈️ Driver</span></div><div id="seats"></div></div></section>
+    <section class="panel" id="p1"><div class="timer"><div class="ring2"><svg width="54" height="54"><circle cx="27" cy="27" r="23" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="5"/><circle id="rc" cx="27" cy="27" r="23" fill="none" stroke="#e09a14" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" style="transition:stroke-dashoffset 1s linear"/></svg><b id="tm"></b></div><div><b>Your seats are held</b><small>Pay before the timer ends</small></div></div><div class="card" id="fare"></div><div class="pay" id="pay"><button class="on">eSewa</button><button>Khalti</button><button>Card</button></div></section>
+    <section class="panel" id="p2"><div class="center"><svg class="tick" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30"/><path d="M23 37l9 9 17-19"/></svg><h2>Booking confirmed</h2><p>Show this ticket to the conductor when you board.</p></div><div class="ticket"><div class="tk-top"><div><b id="tr"></b><small id="tv"></small></div><b id="tt"></b></div><div class="tk-body" id="tb"></div><div class="tk-cut"></div><div class="qr" id="qr"></div></div></section>
+  </main>
+  <footer class="bar"><div class="sum"><b id="sb"></b><small id="ss"></small></div><button class="cta" id="cta"></button></footer>
+</section>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Menu"><div class="dp" id="dp"></div><nav id="dnav"></nav></aside>
+<section class="screen off" id="sub"><div class="fh"><div class="r"><button class="back" id="sback" aria-label="Back">←</button><h1 id="sti"></h1></div></div><div id="subbody"></div></section>
+<div class="toast" id="toast"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id),rs=n=>'Rs '+n,FEE=10,HOLD=300;
+const S=[['Kalanki',45,245],['Balkhu',80,205],['Kalimati',125,170],['Tripureshwor',165,135],['Ratnapark',205,100],['Chabahil',245,62],['Koteshwor',235,200]].map(a=>({n:a[0],x:a[1],y:a[2]}));
+const T={bus:{n:'Local bus',e:'🚌',c:'#2fb590',f:15,rows:8,l:2,r:2},long:{n:'Long route',e:'🚍',c:'#3b82f6',f:25,rows:7,l:2,r:2},hiace:{n:'Hiace',e:'🚐',c:'#a855f7',f:20,rows:5,l:2,r:1},tempo:{n:'Tempo',e:'🛺',c:'#f59e0b',f:12,rows:4,l:1,r:2},ev:{n:'Micro EV',e:'⚡',c:'#ec4899',f:18,rows:4,l:2,r:1}};
+const V=[['bus','Sajha Express','Ba 1 Kha 1234',[0,1,2,3,4,5],.1],['bus','Mahanagar Yatayat','Ba 2 Kha 4410',[5,4,3,2,1,0],.3],['bus','Nepal Yatayat','Ba 3 Kha 2208',[0,1,2,3,4],.6],['long','Mid-Valley Deluxe','Ba 4 Kha 7712',[0,2,4,5],.2],['long','Everest Express','Ba 1 Kha 9021',[5,4,2,0],.7],['hiace','Hiace Ratnapark','Ba 5 Cha 3301',[0,1,2,3,4],.45],['hiace','Hiace Koteshwor','Ba 2 Cha 6150',[6,3,4,5],.15],['tempo','Safa Tempo','Ba 7 Pa 1180',[1,2,3,4],.5],['tempo','Tempo Koteshwor','Ba 6 Pa 5521',[6,3,4],.8],['ev','Sajha EV','Ba 1 Ee 0041',[0,1,2,3,4,5],.35],['ev','Green Micro EV','Ba 9 Ee 0210',[5,4,3,2,1,0],.65]].map((a,id)=>{const v={id,t:a[0],name:a[1],no:a[2],r:a[3],p:a[4],sp:14+(id%4)*2,cum:[0]};for(let i=1;i<v.r.length;i++){const A=S[v.r[i-1]],B=S[v.r[i]];v.cum.push(v.cum[i-1]+Math.hypot(A.x-B.x,A.y-B.y))}v.L=v.cum[v.cum.length-1];
+  let s=id*7919+13;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff,tp=T[v.t],n=v.r.length;v.bk={};v.ld=[];v.bad=[];v.ids=[];
+  for(let i=0;i<tp.rows;i++)for(let k=1;k<=tp.l+tp.r;k++){const id2='ABCDEFGH'[i]+k;v.ids.push(id2);if(i===0)v.ld.push(id2);if(rnd()<.55){const a1=Math.floor(rnd()*(n-1)),b1=a1+1+Math.floor(rnd()*(n-1-a1));v.bk[id2]=[a1,b1]}}
+  if(id%3===0)v.bad.push(v.ids[v.ids.length-1]);return v});
+let type='bus',pu=null,de=null,searched=false,selV=null,veh,lf,lt,sel=[],fstep=0,left=HOLD,tmr=null,paying=false,pm='eSewa',role='p';
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+const match=v=>pu!=null&&de!=null&&v.t===type&&v.r.indexOf(pu)>=0&&v.r.indexOf(de)>v.r.indexOf(pu);
+const st=(v,s,a,b)=>{if(v.bad.includes(s))return'x';const k=v.bk[s];if(k){if(a<k[1]&&k[0]<b)return'booked';if(k[1]===a)return'soon'}return'free'};
+const freeN=(v,a,b)=>v.ids.filter(s=>{const x=st(v,s,a,b);return x==='free'||x==='soon'}).length;
+const eta=v=>{const ahead=(v.cum[v.r.indexOf(pu)]-v.p*v.L+v.L)%v.L;return ahead<10?'Arriving':Math.max(1,Math.round(ahead/v.sp*.5))+' min'};
+/* storage + language */
+function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const dflt=()=>({name:'',phone:'',photo:'',theme:'system',lang:'en',n:{near:1,book:1,dest:1,delay:1}});
+let P=Object.assign(dflt(),ld('sf_p',{}));
+const HIST=ld('sf_h',[{r:'Kalanki to Ratnapark',v:'Sajha Express',d:'28 Sep 2026',s:'A3',f:70,st:'Completed'},{r:'Balkhu to Tripureshwor',v:'Safa Tempo',d:'25 Sep 2026',s:'B1',f:46,st:'Completed'},{r:'Ratnapark to Chabahil',v:'Sajha EV',d:'21 Sep 2026',s:'C2, C3',f:76,st:'Completed'}]);
+const HINT='Choose pickup and drop-off, then search to see vehicles on your route.';
+const NE={'Search buses':'बस खोज्नुहोस्','Select pickup':'चढ्ने ठाउँ छान्नुहोस्','Select drop-off':'ओर्लने ठाउँ छान्नुहोस्','Local bus':'लोकल बस','Long route':'लामो रुट','Hiace':'हाइएस','Tempo':'टेम्पो','Micro EV':'माइक्रो ईभी','Travel history':'यात्रा इतिहास','Notifications':'सूचनाहरू','Settings':'सेटिङ','Help & support':'सहायता र सहयोग','Driver mode':'चालक मोड','Appearance':'रूप','Language':'भाषा','App version':'एप संस्करण','Delete account':'खाता मेटाउनुहोस्','Light':'लाइट','Dark':'डार्क','System default':'सिस्टम डिफल्ट','Edit profile':'प्रोफाइल सम्पादन','Save':'सेभ गर्नुहोस्','Name':'नाम','Phone':'फोन',[HINT]:'चढ्ने र ओर्लने ठाउँ छानेर तपाईंको रुटका सवारी हेर्न खोज्नुहोस्।'};
+const t=k=>(P.lang==='ne'&&NE[k])||k,savP=()=>sv('sf_p',P),today=()=>new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+function applyTheme(){const r=document.documentElement;P.theme==='system'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',P.theme)}
+/* map */
+(function(){let h='<rect width="300" height="340" fill="var(--map)"/>';[[8,20,50,36],[75,18,44,40],[140,20,40,34],[205,150,52,40],[10,95,50,40],[95,262,60,36],[190,255,50,40],[250,95,36,34],[8,285,56,30]].forEach(b=>h+=`<rect class="bk" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="8"/>`);
+  h+='<path class="rv" d="M-10 135 C50 118 70 245 140 236 S235 255 310 228"/>';const seen={};V.forEach(v=>{for(let i=1;i<v.r.length;i++){const a=v.r[i-1],b=v.r[i],k=Math.min(a,b)+'-'+Math.max(a,b);if(!seen[k]){seen[k]=1;h+=`<line class="rd" x1="${S[a].x}" y1="${S[a].y}" x2="${S[b].x}" y2="${S[b].y}"/>`}}});
+  S.forEach(s=>h+=`<circle cx="${s.x}" cy="${s.y}" r="3.5" fill="var(--card)" stroke="var(--mut)" stroke-width="2"/><text class="sn" x="${s.x}" y="${s.y+14}">${s.n}</text>`);
+  h+='<g id="mk"></g>';V.forEach(v=>{const t=T[v.t];h+=`<g class="veh" id="v${v.id}" data-id="${v.id}"><circle class="ring" r="12"/><circle r="11" fill="${t.c}" stroke="#fff" stroke-width="2.5"/><text y="4" text-anchor="middle" font-size="11">${t.e}</text><text class="lbl" y="-18"></text></g>`});
+  $('map').innerHTML=h})();
+function mapState(){V.forEach(v=>{const g=$('v'+v.id),m=match(v);g.style.opacity=searched?(m?1:0):(v.t===type?1:.25);g.style.pointerEvents=searched&&!m?'none':'auto';g.classList.toggle('sel',selV===v.id);g.querySelector('.lbl').textContent='';if(selV===v.id)g.parentNode.appendChild(g)});
+  $('mk').innerHTML=(pu!=null?`<text x="${S[pu].x}" y="${S[pu].y-8}" text-anchor="middle" font-size="15">📍</text>`:'')+(de!=null?`<text x="${S[de].x}" y="${S[de].y-8}" text-anchor="middle" font-size="15">🏁</text>`:'');
+  $('mc').textContent=searched?`${V.filter(match).length} on your route`:`${V.length} vehicles running`}
+let last=0,et=0;function frame(ts){const dt=Math.min((ts-last)/1000||0,.1);last=ts;
+  V.forEach(v=>{v.p=(v.p+v.sp*dt/v.L)%1;const d=v.p*v.L;let i=1;while(i<v.cum.length-1&&v.cum[i]<d)i++;const A=S[v.r[i-1]],B=S[v.r[i]],f=(d-v.cum[i-1])/(v.cum[i]-v.cum[i-1]||1);$('v'+v.id).setAttribute('transform',`translate(${A.x+(B.x-A.x)*f} ${A.y+(B.y-A.y)*f})`)});
+  if(ts-et>800){et=ts;V.filter(match).forEach(v=>{const e=$('e'+v.id);if(e)e.textContent=eta(v);if(selV===v.id)$('v'+v.id).querySelector('.lbl').textContent=v.name+' · '+eta(v)})}requestAnimationFrame(frame)}
+/* home */
+function drawList(){const lh=$('lh');
+  if(!searched){lh.hidden=true;$('list').innerHTML=`<div class="hint"><b>🗺️</b>${t(HINT)}</div>`;return mapState()}
+  const m=V.filter(match);lh.hidden=false;$('lt').textContent=m.length?`${m.length} ${T[type].n.toLowerCase()}${m.length>1?'s':''} on this route`:'No vehicles found';$('ls').textContent=`${S[pu].n} to ${S[de].n}`;
+  $('list').innerHTML=m.length?m.map((v,i)=>{const tp=T[type],a=v.r.indexOf(pu),b=v.r.indexOf(de);return`<div class="vc ${selV===v.id?'on':''}" data-id="${v.id}" style="--i:${i}"><div class="ic" style="background:${tp.c}22">${tp.e}</div><div><b>${v.name}</b><small>${v.no} · ${freeN(v,a,b)} seats free</small></div><div class="rt"><span id="e${v.id}">${eta(v)}</span><small>${rs((b-a)*tp.f)}</small></div></div>`}).join(''):`<div class="empty"><b>${T[type].e}</b>No ${T[type].n.toLowerCase()} runs ${S[pu].n} to ${S[de].n} right now. Try another vehicle type or stop.</div>`;mapState()}
+function pickV(id){if(!searched||!match(V[id]))return toast('Search your route first, then tap a vehicle.');selV=id;drawList();setTimeout(()=>openFlow(id),380)}
+function buildChips(){$('chips').innerHTML=Object.keys(T).map(k=>`<button class="chip ${k===type?'on':''}" data-k="${k}">${T[k].e} ${t(T[k].n)}</button>`).join('')}
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;type=b.dataset.k;selV=null;buildChips();drawList()};
+function fillSel(){[['pu','Select pickup',pu],['de','Select drop-off',de]].forEach(a=>{$(a[0]).innerHTML=`<option value="" disabled ${a[2]==null?'selected':''}>${t(a[1])}</option>`+S.map((s,i)=>`<option value="${i}" ${a[2]===i?'selected':''}>${s.n}</option>`).join('')})}
+const chk=()=>{$('sbtn').disabled=pu==null||de==null||pu===de};
+function changed(){searched=false;selV=null;chk();drawList()}
+['pu','de'].forEach(id=>$(id).onchange=()=>{const g=i=>$(i).value===''?null:+$(i).value;pu=g('pu');de=g('de');changed()});
+$('swap').onclick=()=>{[pu,de]=[de,pu];fillSel();$('swap').style.transform=`rotate(${$('swap').dataset.r=(+($('swap').dataset.r||0)+180)}deg)`;changed()};
+$('sbtn').onclick=()=>{searched=true;selV=null;snapTo('half');drawList()};
+$('list').onclick=e=>{const c=e.target.closest('.vc');if(c)pickV(+c.dataset.id)};
+$('map').onclick=e=>{const g=e.target.closest('.veh');if(g)pickV(+g.dataset.id)};
+/* draggable sheet */
+const SH=$('sheet'),DZ=$('dz'),Z=72;let snap='half',dr=null;
+const tops=()=>{const H=$('home').clientHeight;return{full:Z,half:Math.round(H*.48),peek:Math.round(H*.7)}};
+function put(top,anim){SH.classList.toggle('drag',!anim);SH.style.transform=`translateY(${top-Z}px)`;SH.style.setProperty('--off',(top-Z)+'px')}
+function snapTo(n){snap=n;put(tops()[n],true)}
+DZ.onpointerdown=e=>{dr={y:e.clientY,t:tops()[snap],t0:performance.now(),moved:false,cur:tops()[snap]};DZ.setPointerCapture(e.pointerId)};
+DZ.onpointermove=e=>{if(!dr)return;const T2=tops(),dy=e.clientY-dr.y;if(Math.abs(dy)>4)dr.moved=true;dr.cur=Math.min(T2.peek,Math.max(T2.full,dr.t+dy));put(dr.cur,false)};
+const endDrag=e=>{if(!dr)return;const T2=tops();if(!dr.moved){snapTo(snap==='full'?'half':'full');dr=null;return}
+  const v=(e.clientY-dr.y)/Math.max(1,performance.now()-dr.t0),nt=dr.cur+v*200,best=Object.keys(T2).reduce((a,k)=>Math.abs(T2[k]-nt)<Math.abs(T2[a]-nt)?k:a,'half');dr=null;snapTo(best)};
+DZ.onpointerup=endDrag;DZ.onpointercancel=endDrag;
+addEventListener('resize',()=>snapTo(snap));
+/* menu drawer */
+const MENU=[['history','🕘','Travel history'],['notif','🔔','Notifications'],['settings','⚙️','Settings'],['help','💬','Help & support']];
+const avHtml=()=>P.photo?`<img src="${P.photo}" alt="Profile photo">`:(P.name||'P')[0].toUpperCase();
+function renderDrawer(){$('dp').innerHTML=`<div class="av">${avHtml()}</div><div><b>${P.name||'Passenger'}</b><small>${P.phone||'Add your phone number'}</small></div><button class="ed" data-p="profile">${t('Edit profile')}</button>`;
+  $('dnav').innerHTML=MENU.map(m=>`<button class="mi" data-p="${m[0]}"><span>${m[1]}</span><span>${t(m[2])}</span></button>`).join('')+`<button class="mi drvb" id="godrv">🚍 ${t('Driver mode')}</button>`}
+const op=on=>{$('drawer').classList.toggle('open',on);$('scrim').classList.toggle('open',on)};
+$('hb').onclick=()=>{renderDrawer();op(true)};$('scrim').onclick=()=>op(false);
+$('drawer').onclick=e=>{const b=e.target.closest('[data-p],#godrv,.av');if(!b)return;op(false);if(b.id==='godrv')setTimeout(()=>setRole('d'),250);else setTimeout(()=>openSub(b.dataset.p||'profile'),250)};
+/* sub pages */
+let subP='';const TT={profile:'Edit profile',history:'Travel history',notif:'Notifications',settings:'Settings',help:'Help & support'};
+const seg2=(id,o,cur)=>`<div class="seg2" id="${id}">${o.map(x=>`<button data-v="${x[0]}" class="${x[0]===cur?'on':''}">${x[1]}</button>`).join('')}</div>`;
+function openSub(p){subP=p;renderSub();$('sub').classList.remove('off')}
+$('sback').onclick=()=>$('sub').classList.add('off');
+function renderSub(){$('sti').textContent=t(TT[subP]);let h='';
+  if(subP==='profile')h=`<div class="avw"><div class="av big">${avHtml()}</div><label class="cam" aria-label="Change photo">📷<input type="file" accept="image/*" id="pf" hidden></label></div><label class="fl">${t('Name')}<input id="pn" value="${P.name}" placeholder="Your name" autocomplete="name"></label><label class="fl">${t('Phone')}<input id="pph" value="${P.phone}" placeholder="+977 98XXXXXXXX" inputmode="tel"></label><button class="cta full" id="psave">${t('Save')}</button>`;
+  if(subP==='history')h=HIST.length?HIST.map((x,i)=>`<div class="hi" style="animation-delay:${i*60}ms"><div><b>${x.r}</b><span class="tg ${x.st==='Upcoming'?'up':'ok'}">${x.st}</span></div><div><small>${x.v} · Seat ${x.s}</small><small>${x.d} · ${rs(x.f)}</small></div></div>`).join(''):`<div class="hint"><b>🕘</b>No trips yet. Your booked tickets will appear here.</div>`;
+  if(subP==='notif')h=[['near','Bus approaching your pickup','Alerts as your bus gets close'],['book','Booking and payment updates','Confirmations and receipts'],['dest','Get-ready alert','About 1 km before your drop-off'],['delay','Delays and trip changes','If your bus is late or cancelled']].map(x=>`<div class="sw"><span><b>${x[1]}</b><small>${x[2]}</small></span><button class="tgl ${P.n[x[0]]?'on':''}" data-n="${x[0]}" aria-label="${x[1]}"></button></div>`).join('');
+  if(subP==='settings')h=`<div class="sg"><h4>${t('Appearance')}</h4>${seg2('th',[['light',t('Light')],['dark',t('Dark')],['system',t('System default')]],P.theme)}</div><div class="sg"><h4>${t('Language')}</h4>${seg2('lg',[['en','English'],['ne','नेपाली']],P.lang)}</div><div class="sw"><span>${t('App version')}</span><b>1.0.0 (24)</b></div><button class="dgr" id="delb">${t('Delete account')}</button><div id="cfw"></div>`;
+  if(subP==='help')h=[['How does segment booking work?','One seat can be sold for different parts of the same trip. If a seat is taken from Kalanki to Kalimati, you can still book it from Kalimati onward.'],['My QR ticket will not scan','Open the ticket from Travel history, raise screen brightness and show it to the conductor. They can check the booking manually.'],['How do I cancel a booking?','Open the trip in Travel history and choose cancel before the bus reaches your pickup stop.'],['Payment was taken but there is no ticket','Wait a minute and check Travel history. If it is still missing, contact support with your payment reference.']].map(x=>`<details><summary>${x[0]}</summary><p>${x[1]}</p></details>`).join('')+`<a class="cta full" href="mailto:support@seatflow.example" style="margin-top:14px">Contact support</a>`;
+  $('subbody').innerHTML=h}
+function readPhoto(f){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),m=Math.min(im.width,im.height);c.width=c.height=160;c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,160,160);P.photo=c.toDataURL('image/jpeg',.8);savP();renderSub();renderDrawer()};im.src=r.result};r.readAsDataURL(f)}
+function delAcc(){try{['sf_p','sf_h'].forEach(k=>localStorage.removeItem(k))}catch(e){}P=dflt();HIST.length=0;applyTheme();applyLang();$('sub').classList.add('off');toast('Account deleted. Your data was removed from this device.')}
+$('subbody').onclick=e=>{const el=e.target,sb=el.closest('.seg2 button');
+  if(sb){if(sb.parentNode.id==='th'){P.theme=sb.dataset.v;savP();applyTheme();renderSub()}else{P.lang=sb.dataset.v;savP();applyLang()}return}
+  const tg=el.closest('.tgl');if(tg){const k=tg.dataset.n;P.n[k]=P.n[k]?0:1;savP();tg.classList.toggle('on',!!P.n[k]);return}
+  if(el.closest('#psave')){P.name=$('pn').value.trim();P.phone=$('pph').value.trim();savP();renderDrawer();renderSub();toast('Profile saved');return}
+  if(el.closest('#delb')){$('cfw').innerHTML=`<div class="cf"><p>Delete your account? This removes your profile, trip history and settings from this device.</p><div><button id="delno" style="background:var(--card)">Cancel</button><button id="delyes" style="background:var(--bad);color:#fff">Delete</button></div></div>`;return}
+  if(el.closest('#delno')){$('cfw').innerHTML='';return}if(el.closest('#delyes'))delAcc()};
+$('subbody').onchange=e=>{if(e.target.id==='pf'&&e.target.files[0])readPhoto(e.target.files[0])};
+function applyLang(){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));buildChips();fillSel();drawList();renderDrawer();if(!$('sub').classList.contains('off'))renderSub()}
+applyTheme();applyLang();chk();snapTo('half');
+/* seats */
+function seats(box,v,fn,pick,na){let k=0;const t=T[v.t];box.className=na?'na':'';box.innerHTML=Array.from({length:t.rows},(_,i)=>{const L='ABCDEFGH'[i],c=n=>{const id=L+n,s=pick&&pick.includes(id)?'sel':fn(id);return`<button class="seat ${s} ${v.ld.includes(id)?'ld':''}" style="--i:${k++}" data-s="${id}" ${s==='booked'||s==='x'||na?'disabled':''} aria-label="Seat ${id}">${id}</button>`};let h='';for(let n=1;n<=t.l;n++)h+=c(n);h+=`<span class="rl">${L}</span>`;for(let n=t.l+1;n<=t.l+t.r;n++)h+=c(n);return`<div class="row" style="grid-template-columns:repeat(${t.l},1fr) 20px repeat(${t.r},1fr);max-width:${(t.l+t.r)*62+20}px">${h}</div>`}).join('')}
+/* flow */
+const seg=()=>lt-lf,price=()=>sel.length*seg()*T[veh.t].f;
+function openFlow(id){veh=V[id];lf=veh.r.indexOf(pu);lt=veh.r.indexOf(de);sel=[];$('home').classList.add('away');$('flow').classList.remove('off');fgo(0)}
+function closeFlow(){clearInterval(tmr);$('flow').classList.add('off');$('home').classList.remove('away');selV=null;drawList()}
+function fgo(n){fstep=n;if(n!==1)clearInterval(tmr);document.querySelectorAll('#flow .panel').forEach((p,i)=>{p.classList.toggle('active',i===n);p.classList.toggle('left',i<n)});document.querySelectorAll('#steps span').forEach((s,i)=>s.classList.toggle('on',i<=n));
+  $('back').style.visibility=n===2?'hidden':'visible';
+  const ti=[[veh.name,`${S[pu].n} to ${S[de].n} · ${veh.no}`],['Complete payment','Seats stay yours while the timer runs'],['You are all set','Ticket saved to your trips']][n];$('ft').textContent=ti[0];$('fs').textContent=ti[1];
+  if(n===0)seats($('seats'),veh,s=>st(veh,s,lf,lt),sel);
+  if(n===1){$('fare').innerHTML=`<div class="line"><span>Vehicle</span><b>${veh.name}</b></div><div class="line"><span>Route</span><b>${S[pu].n} to ${S[de].n}</b></div><div class="line"><span>Seats</span><b>${sel.join(', ')}</b></div><div class="line"><span>Fare (${sel.length} × ${seg()} stops)</span><b>${rs(price())}</b></div><div class="line"><span>Booking fee</span><b>${rs(FEE)}</b></div><div class="line total"><span>Total</span><b>${rs(price()+FEE)}</b></div>`;hold()}
+  if(n===2)ticket();fupd()}
+function fupd(){const c=$('cta'),b=$('sb'),s=$('ss');c.disabled=false;
+  if(fstep===0){b.textContent=sel.length?sel.join(', '):'No seat selected';s.textContent=sel.length?`${rs(price())} fare`:`${freeN(veh,lf,lt)} seats free · tap to select (max 4)`;c.textContent='Continue';c.disabled=!sel.length}
+  else if(fstep===1){b.textContent=rs(price()+FEE);s.textContent='Total including booking fee';c.innerHTML=paying?'<span class="spin"></span>Processing':'Pay now';c.disabled=paying}
+  else{b.textContent='Ticket ready';s.textContent='Safe travels';c.textContent='Done'}}
+function hold(){left=HOLD;clearInterval(tmr);const tick=()=>{$('tm').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');$('rc').style.strokeDashoffset=144.5*(1-left/HOLD)};tick();tmr=setInterval(()=>{if(paying)return;left--;tick();if(left<=0){sel=[];toast('Hold expired. Seats are free again.');fgo(0)}},1000)}
+function ticket(){const id='SF'+Math.random().toString(36).slice(2,8).toUpperCase();$('tr').textContent=`${S[pu].n} to ${S[de].n}`;$('tv').textContent=`${veh.name} · ${veh.no}`;$('tt').textContent=id;HIST.unshift({r:`${S[pu].n} to ${S[de].n}`,v:veh.name,d:today(),s:sel.join(', '),f:price()+FEE,st:'Upcoming'});sv('sf_h',HIST);
+  $('tb').innerHTML=[['Seats',sel.join(', ')],['Fare paid',rs(price()+FEE)],['Date',today()],['Pay with',pm],['Pickup',S[pu].n],['Drop-off',S[de].n]].map(x=>`<div><small>${x[0]}</small><b>${x[1]}</b></div>`).join('');
+  let h=Array.from(id).reduce((a,c)=>a*31+c.charCodeAt(0),7),g='';const N=21,fin=(x,y)=>{for(const o of [[0,0],[14,0],[0,14]]){const a=x-o[0],b=y-o[1];if(a>=0&&a<8&&b>=0&&b<8)return a<7&&b<7&&(a==0||a==6||b==0||b==6||(a>=2&&a<=4&&b>=2&&b<=4))}return null};
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){let on=fin(x,y);if(on===null){h=(h*1103515245+12345)&0x7fffffff;on=h%100<48}if(on)g+=`<rect x="${x*10}" y="${y*10}" width="10" height="10" rx="1.5" fill="#0e1a2b"/>`}$('qr').innerHTML=`<svg viewBox="0 0 210 210">${g}</svg>`}
+$('seats').onclick=e=>{const b=e.target.closest('.seat');if(!b)return;const id=b.dataset.s,i=sel.indexOf(id);if(i>-1)sel.splice(i,1);else if(sel.length>=4)return toast('You can book up to 4 seats at once.');else sel.push(id);b.classList.toggle('sel');fupd()};
+$('pay').onclick=e=>{const b=e.target.closest('button');if(!b)return;pm=b.textContent;[...$('pay').children].forEach(x=>x.classList.toggle('on',x===b))};
+$('back').onclick=()=>fstep===0?closeFlow():fgo(0);
+$('cta').onclick=()=>{if(fstep===0)fgo(1);else if(fstep===1){paying=true;fupd();setTimeout(()=>{paying=false;fgo(2)},1500)}else closeFlow()};
+/* roles + driver */
+function setRole(r){role=r;$('home').classList.toggle('away',r==='d');$('drv').classList.toggle('off',r!=='d');if(r==='d')drender()}
+$('dback').onclick=()=>setRole('p');
+const DV=V[0],D={s:'idle',cur:0,n:0,chk:0,iv:null},CK=['Driver verified','Bus verified','Documents valid','GPS ready','Internet connected'];
+const dst=s=>{const k=DV.bk[s];if(DV.bad.includes(s))return'x';if(k){if(k[0]<=D.cur&&D.cur<k[1])return k[1]===D.cur+1?'soon':'booked'}return'free'};
+function drender(){const b=$('dbody');
+  if(D.s==='idle')b.innerHTML=`<div class="card"><span class="pillst"><b></b>Not started</span><ul class="chk">${CK.map((c,i)=>`<li class="${i<D.chk?'ok':''}"><i>✓</i>${c}</li>`).join('')}</ul></div><div class="btns"><button class="pr" data-a="start" style="padding:16px">${D.chk?'Checking…':'Start trip'}</button></div>`;
+  else if(D.s==='live'){const on=DV.ids.filter(s=>{const k=DV.bk[s];return k&&k[0]<=D.cur&&D.cur<k[1]}).length,r=DV.r;
+    b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span class="pillst live"><b></b>Trip live · GPS sharing</span><small style="color:var(--mut)">Signal strong</small></div><div class="stats"><div><b>${on+D.n}</b><small>On board</small></div><div><b>${DV.ids.length-on}</b><small>Seats free</small></div><div><b style="font-size:14px;padding:3px 0">${S[r[Math.min(D.cur+1,r.length-1)]].n}</b><small>Next stop</small></div></div>
+    <div class="rt2">${r.map((x,i)=>`<span class="${i<D.cur?'p':''} ${i===D.cur?'c':''}">${S[x].n}</span>`).join('')}</div><div class="legend"><span><i style="background:var(--booked)"></i>Occupied</span><span><i style="background:var(--soon);border:2px dashed var(--soonb)"></i>Releasing soon</span><span><i style="background:var(--free);border:2px solid var(--freeb)"></i>Free</span></div><div class="deck"><div id="dseats"></div></div>
+    <div class="btns"><button data-a="scan">Scan QR</button><button class="em" data-a="sos">Emergency</button><button class="pr" data-a="end">End trip</button></div>`;seats($('dseats'),DV,dst,null,true)}
+  else b.innerHTML=`<div class="card center"><div style="font-size:40px">🏁</div><h2 style="margin:6px 0">Trip completed</h2><p style="margin:0 0 4px;color:var(--mut)">${DV.ids.filter(s=>DV.bk[s]).length+D.n} passengers carried</p></div><div class="btns"><button class="pr" data-a="reset" style="padding:16px">Back to dashboard</button></div>`}
+$('dbody').onclick=e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a;
+  if(a==='start'&&!D.chk){const step=()=>{D.chk++;drender();if(D.chk<CK.length)setTimeout(step,380);else setTimeout(()=>{D.s='live';D.cur=0;drender();D.iv=setInterval(()=>{D.cur++;if(D.cur>=DV.r.length-1){D.cur=DV.r.length-1;clearInterval(D.iv);D.s='done'}drender()},3800)},500)};step()}
+  if(a==='scan'){D.n++;toast('Passenger boarded · ticket verified');drender()}
+  if(a==='sos')toast('Emergency alert sent to control centre with live GPS');
+  if(a==='end'){clearInterval(D.iv);D.s='done';drender()}
+  if(a==='reset'){D.s='idle';D.cur=0;D.n=0;D.chk=0;drender()}};
+$('dbody').addEventListener('click',()=>{});
+drawList();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
